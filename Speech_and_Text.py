@@ -22,11 +22,8 @@ def _record(if_cmu: bool = False):
     file_name = path.join(path.dirname(path.abspath(__file__)), "audio/speech.wav")
     with open(file_name, "wb") as f:
         f.write(audio.get_wav_data())
-    
-    if if_cmu:
-        return audio
-    else:
-        return _get_file_content(file_name)
+
+    return audio if if_cmu else _get_file_content(file_name)
 
 # 从文件中加载音频
 def _get_file_content(file_name):
@@ -52,10 +49,7 @@ def speech_to_text_baidu(audio_path: str = "test.wav", if_microphone: bool = Tru
             'dev_pid': 1537,  # 识别普通话，使用输入法模型
         })
 
-    if result["err_msg"] != "success.":
-        return "..."
-    else:
-        return result['result'][0]
+    return "..." if result["err_msg"] != "success." else result['result'][0]
 
 def speech_to_text_cmu(audio_path: str = "test.wav", if_microphone: bool = True):
     # 语种
@@ -97,24 +91,20 @@ def speech_to_text_ifly(audio_path: str = "test.wav", if_microphone: bool = True
         m2.update((api_key + cur_time + param_base64).encode('utf-8'))
         check_sum = m2.hexdigest()
 
-        # 请求头
-        header = {
+        return {
             'X-CurTime': cur_time,
             'X-Param': param_base64,
             'X-Appid': app_id,
             'X-CheckSum': check_sum,
             'Content-Type': 'application/x-www-form-urlencoded; charset=utf-8',
         }
-        return header
 
     def get_body(filepath):
         
         if if_microphone:
-            data = {'audio': base64.b64encode(filepath)}  # Base64编码
-        else:
-            bin_file = open(filepath, 'rb')  # 二进制
-            data = {'audio': base64.b64encode(bin_file.read())}  # Base64编码
-        return data
+            return {'audio': base64.b64encode(filepath)}
+        bin_file = open(filepath, 'rb')  # 二进制
+        return {'audio': base64.b64encode(bin_file.read())}
 
     aue = "raw"
     engine_type = "sms16k"
